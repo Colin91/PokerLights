@@ -49,6 +49,11 @@ void GameStatus::GS_setBigBlind(int GS_BB_In)
 
 void GameStatus::GS_setSidePot(int GS_SP_In)
 {
+	GS_SidePot = GS_SP_In;
+}
+
+void GameStatus::GS_setAddToSidePot(int GS_SP_In)
+{
 	GS_SidePot = GS_SidePot + GS_SP_In;
 }
 

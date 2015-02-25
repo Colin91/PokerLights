@@ -1,18 +1,12 @@
 #include "PokerTurns.h"
-#include "cards.h"
-#include "Action.h"
-#include "GameStatus.h"
-#include "player.h"
-#include "playerlist.h"
-#include "PlayerStatus.h"
 #include <iostream>
 #include <string>
 #include <cstdlib>
 using namespace std;
 
 
-PokerTurns::PokerTurns(int Game_Round_In,PlayerList &PL,PlayerStatus &PS, GameStatus &GS,Cards &C,Action &A,int &GSA,int **PSA)
-:Game_Round(Game_Round_In),P_In(&PL),PS_In(&PS),GS_In(&GS),C_In(&C),A_In(&A),GSA_In(&GSA),PSA_In(*&PSA)
+PokerTurns::PokerTurns(int Game_Round_In,PlayerList &PL,PlayerStatusList &PSL,GameStatus &GS,Cards &C,Action &A)
+:Game_Round(Game_Round_In),P_In(&PL),PSL_In(&PSL),GS_In(&GS),C_In(&C),A_In(&A)
 {
 }
 
@@ -21,37 +15,48 @@ void PokerTurns::PT_Game_Init(int PT_NOP_In,int Big_Blind_In)
 	int Blind_Counter=0;
 	int Flag=0;
 	int getIndex;
-	int *PlayerHand = new int[7];
-
+	PlayerStatus *PS,*PS1,*PS2;
+	int chips=1500;
+		 
 	PT_setRound(0);
 	PT_setGameRound(0);
-	GS_In->GS_setPotSize(GSA_In[0]);
-	GS_In->GS_setBigBlind(Big_Blind_In);
-	GS_In->GS_setSmallBlind(Big_Blind_In/2); //Check For Errors
+	GS_In->GS_setPotSize(0);//(GSA_In[0]);
+	GS_In->GS_setHighBet(0);
 	GS_In->GS_setIngameTotal(PT_NOP_In);
-	GS_In->GS_setInroundTotal(PT_NOP_In);
+	GS_In->GS_setSmallBlind(Big_Blind_In/2); //Check For Errors
+	GS_In->GS_setBigBlind(Big_Blind_In);
+	GS_In->GS_setSidePot(0);
+	GS_In->GS_setFlopC1(0);
+	GS_In->GS_setFlopC2(0);
+	GS_In->GS_setFlopC3(0);
+	GS_In->GS_setTurn(0);
+	GS_In->GS_setRiver(0);
 	GS_In->GS_setNumberOfPlayers(PT_NOP_In);
-	GS_In->GS_setSidePot(GSA_In[5]);
-	GS_In->GS_setFlopC1(GSA_In[6]);
-	GS_In->GS_setFlopC2(GSA_In[7]);
-	GS_In->GS_setFlopC3(GSA_In[8]);
-	GS_In->GS_setTurn(GSA_In[9]);
-	GS_In->GS_setRiver(GSA_In[10]);
+	GS_In->GS_setInroundTotal(0);
+	
+	PT_setGameRound(0);
+	
 	for(int i=0;i<PT_NOP_In;i++)
 	{
-	    P = P_In->PL_getPlayer(i);
+		P = P_In->PL_getPlayer(i);
 		getIndex = P.P_getIndex();
-		PS_In[i].PS_setIngame(PSA_In[i][4]);
-		PS_In[i].PS_setInRound(PSA_In[i][8]);
-		PS_In[i].PS_setChips(1500);
-		PS_In[i].PS_setIndex(getIndex);
-		PS_In[i].PS_setCurrentBet(PSA_In[i][9]);
-		PS_In[i].PS_setAllInFlag(PSA_In[i][10]);
-		PS_In[i].PS_setAccBet(PSA_In[i][7]);
-		PS_In[i].PS_setRank(PSA_In[i][3]);
-		PS_In[i].PS_setEOR(PSA_In[i][6]);
+		
+		PS = PSL_In->PSL_getPlayer(i);
+	    PS->PS_setIndex(getIndex);
+		PS->PS_setCards(0,0);
+		PS->PS_setChips(1500);
+		PS->PS_setRank(0);
+		PS->PS_setIngame(1);//(PSA_In[i][4]);
+		PS->PS_setBlind(0);
+		PS->PS_setEOR(0);
+		PS->PS_setAccBet(0);
+		PS->PS_setInRound(0);
+		PS->PS_setCurrentBet(0);
+		PS->PS_setAllInFlag(0);
+							
 	}
-
+	
+	
 }
 
 void PokerTurns::PT_Round_Init()
@@ -59,72 +64,63 @@ void PokerTurns::PT_Round_Init()
 	int Round_In=0;
 	int getIndex;
 	Round=Round_In;
-
-	int SB,BB,TotalBlinds,s;
+	PlayerStatus *PS,*PS1,*PS2;
+	
+	int SB,BB,TotalBlinds;
 	int Blind_Set=1;
 	int PT_NOP = GS_In->GS_getIngameTotal();
 	int GR = PT_getGameRound();
 	int *PlayerHand = new int[7];
-
+	int s=0;
 
 	SB=GS_In->GS_getSmallBlind();
 	BB=GS_In->GS_getBigBlind();
 	TotalBlinds=SB+BB;
 
-	GS_In->GS_setPotSize(TotalBlinds);
-	GS_In->GS_setHighBet(BB);
+	GS_In->GS_setPotSize(SB+BB);
+	GS_In->GS_setHighBet(TotalBlinds);
 
 	for(int i=0;i<PT_NOP;i++)
 	{
 		P = P_In->PL_getPlayer(i);
+		PS = PSL_In->PSL_getPlayer(i);
 		getIndex = P.P_getIndex();
-		PS_In[i].PS_setInRound(1);
-		PS_In[i].PS_setCurrentBet(0);
-		PS_In[i].PS_setAllInFlag(0);
-
-		PlayerHand[0] = PS_In[i].PS_getCardArray();
-		PlayerHand[0]=0;
-		PlayerHand[1]=0;
-		PlayerHand[2]=0;
-		PlayerHand[3]=0;
-		PlayerHand[4]=0;
-		PlayerHand[5]=0;
-		PlayerHand[6]=0;
-		PS_In[i].PS_setCardArray(PlayerHand[0]);
-
+		PS->PS_setInRound(1);
+		PS->PS_setBlind(Blind_Set);//(PSA_In[i][5]);
+		PS->PS_setCurrentBet(0);
+		PS->PS_setAccBet(0);
 	}
-	GS_In->GS_setInroundTotal(PT_NOP);
+	GS_In->GS_setInroundTotal(1);
 
 	if(GR>PT_NOP)
 	{
 		GR=0;
 		PT_setGameRound(GR);
+		
 	}
-	for(int j=0;j<PT_NOP;j++)
-	{
-		PS_In[j].PS_setBlind(0);
-		PS_In[j].PS_setCurrentBet(0);
-		PS_In[j].PS_setInRound(1);
-		PS_In[j].PS_setAccBet(0);
 
-	}
 	if(PT_NOP>=3) //3 Player and more
 	{
 		for(int i=GR;i<PT_NOP;i++)
 		{
-			s=PS_In[i].PS_getIngame();
+			s=PS->PS_getIngame();
+			PS = PSL_In->PSL_getPlayer(i);
+
 			if(s==1)
 			{
-				if(Blind_Set<=3)
+				if(Blind_Set<4)
 				{
-					PS_In[i].PS_setBlind(Blind_Set);
+					if(Blind_Set==1)
+					{
+						PS->PS_setBlind(Blind_Set);
+					}
 					if(Blind_Set==2)
 					{
-						PS_In[i].PS_setCurrentBet(SB);
+						PS->PS_setCurrentBet(SB);
 					}
 					if(Blind_Set==3)
 					{
-						PS_In[i].PS_setCurrentBet(BB);
+						PS->PS_setCurrentBet(BB);
 					}
 					Blind_Set++;
 				}
@@ -132,29 +128,42 @@ void PokerTurns::PT_Round_Init()
 				{
 					i=PT_NOP;
 				}
-				if((PS_In[PT_NOP-1].PS_getBlind()==1)&&(PS_In[PT_NOP].PS_getBlind()==2))
+
+			    PS1 = PSL_In->PSL_getPlayer(PT_NOP-1);
+			    PS2 = PSL_In->PSL_getPlayer(PT_NOP);				
+								
+				if((PS1->PS_getBlind()==1)&&(PS2->PS_getBlind()==2))
 				{
-					PS_In[0].PS_setBlind(3);
+					PS1 = PSL_In->PSL_getPlayer(0);
+					PS1->PS_setBlind(3);
 					Blind_Set=4;
 					i=PT_NOP;
+					s=0;
 				}
-				if(PS_In[PT_NOP].PS_getBlind()==1)
+				if(PS->PS_getBlind()==1)
 				{
 					Blind_Set=4;
-					PS_In[0].PS_setBlind(2);
-					PS_In[1].PS_setBlind(3);
+					PS1 = PSL_In->PSL_getPlayer(0);
+			   		PS2 = PSL_In->PSL_getPlayer(1);	
+					PS1->PS_setBlind(2);
+					PS2->PS_setBlind(3);
 					i=PT_NOP;
+					s=0;
 				}
 			}
 		}
 	}
+
 	GR++;
 	PT_setGameRound(GR);
+	
 
 }
 
 void PokerTurns::PT_PreFlop()
 {
+	PlayerStatus *PS,*PS1,*PS2;
+	
     int players = GS_In->GS_getIngameTotal();
 	int input,index;
 	string name="";
@@ -165,18 +174,20 @@ void PokerTurns::PT_PreFlop()
 	int Card1,Card2;
 	for(int k=0;k<players;k++)
 	{
+		PS = PSL_In->PSL_getPlayer(k);
 		for(int j=0;j<2;j++)
 		{
 			Card1 = RandomNumber();
 			Card2 = RandomNumber();
 		}
-		PS_In[k].PS_setCards(Card1,Card2);
+		PS->PS_setCards(Card1,Card2);
 
 	}
 
 	for(int i=0;i<players;i++)
 	{
-		if(PS_In[i].PS_getInRound()==1)
+		PS = PSL_In->PSL_getPlayer(i);
+		if(PS->PS_getInRound()==1)
 		{
 			do
 			{
@@ -204,6 +215,7 @@ void PokerTurns::PT_PreFlop()
 
 					case 3 : //Check
 						Return = A_In->A_Check(i);
+						cout<<"Ret"<<Return<<endl;
 						break;
 
 					case 4 : //Fold
@@ -220,11 +232,12 @@ void PokerTurns::PT_PreFlop()
 
 	}
 	PT_setRound(1);
-
+	
 }
 
 void PokerTurns::PT_Flop()
 {
+	PlayerStatus *PS,*PS1,*PS2;
 	int input;
 	int Raise;
 	int Return=0;
@@ -242,10 +255,9 @@ void PokerTurns::PT_Flop()
 
 	for(int i=0;i<players;i++)
 	{
-
-		if(PS_In[i].PS_getInRound()==1)
+		PS = PSL_In->PSL_getPlayer(i);
+		if(PS->PS_getInRound()==1)
 		{
-
 			do
 			{
 			    P = P_In->PL_getPlayer(i);
@@ -282,17 +294,18 @@ void PokerTurns::PT_Flop()
                     Return = 0;
                 }
 
-			}while(Return==0);
+			}while(Return!=0);
 		}
 
 	}
 	PT_setRound((1)+1);
-
+	
 
 }
 
 void PokerTurns::PT_Turn()
 {
+	PlayerStatus *PS,*PS1,*PS2;
 	int input=0;
 	int Raise=0;
 	int Return=0;
@@ -306,7 +319,8 @@ void PokerTurns::PT_Turn()
 
 	for(int i=0;i<players;i++)
 	{
-		if(PS_In[i].PS_getInRound()==1)
+		PS = PSL_In->PSL_getPlayer(i);
+		if(PS->PS_getInRound()==1)
 		{
 			do
 			{
@@ -344,7 +358,7 @@ void PokerTurns::PT_Turn()
                     Return = 0;
                 }
 
-			}while(Return==0);
+			}while(Return!=0);
 		}
 
 	}
@@ -353,23 +367,25 @@ void PokerTurns::PT_Turn()
 
 }
 
-
 void PokerTurns::PT_River()
 {
-	int input=0;
+	PlayerStatus *PS,*PS1,*PS2;
 	int Raise=0;
 	int Return=0;
 	int players = GS_In->GS_getIngameTotal();
 	int index;
 	string name;
+	int input=0;
 
 	int Card;
 	Card = RandomNumber();
 	GS_In->GS_setRiver(Card);
 
+
 	for(int i=0;i<players;i++)
 	{
-		if(PS_In[i].PS_getInRound()==1)
+		PS = PSL_In->PSL_getPlayer(i);
+		if(PS->PS_getInRound()==1)
 		{
 			do
 			{
@@ -407,7 +423,7 @@ void PokerTurns::PT_River()
                     Return = 0;
                 }
 
-			}while(Return==0);
+			}while(Return!=0);
 		}
 
 	}
@@ -418,6 +434,7 @@ void PokerTurns::PT_River()
 
 void PokerTurns::PT_Round_Result()
 {
+    PlayerStatus *PS,*PS1,*PS2;
 	int PlayerIngame = GS_In->GS_getIngameTotal();
 	int TotalPlayers = GS_In->GS_getNumberOfPlayers();
 	int round = PT_getRound();
@@ -437,27 +454,29 @@ void PokerTurns::PT_Round_Result()
 
 	for(int l=0;l<TotalPlayers;l++)
 	{
-		getChips = PS_In[l].PS_getChips();
+		PS = PSL_In->PSL_getPlayer(l);
+		getChips = PS->PS_getChips();
 		if(getChips==0)
 		{
-			PS_In[l].PS_setIngame(0);
+			PS->PS_setIngame(0);
 		}
 
 	}
 
 	for(int i=0;i<TotalPlayers;i++)
 	{
+		PS = PSL_In->PSL_getPlayer(i);
 		for(int j=0;j<1;j++)
 		{
-			PlayerHandRank[0]=PS_In[i].PS_getCard1();
-			PlayerHandRank[1]=PS_In[i].PS_getCard2();
+			PlayerHandRank[0]=PS->PS_getCard1();
+			PlayerHandRank[1]=PS->PS_getCard2();
 			PlayerHandRank[2]=GS_In->GS_getFlopC1();
 			PlayerHandRank[3]=GS_In->GS_getFlopC2();
 			PlayerHandRank[4]=GS_In->GS_getFlopC3();
 			PlayerHandRank[5]=GS_In->GS_getTurn();
 			PlayerHandRank[6]=GS_In->GS_getRiver();
 
-			PS_In[i].PS_setCardArray(PlayerHandRank[0]);
+			PS->PS_setCardArray(PlayerHandRank[0]);
 
 		}
 	}
@@ -466,11 +485,12 @@ void PokerTurns::PT_Round_Result()
 	{
 		for(int i=0;i<TotalPlayers;i++)
 		{
-			CheckPlayers = PS_In[i].PS_getInRound();
+			PS = PSL_In->PSL_getPlayer(i);
+			CheckPlayers = PS->PS_getInRound();
 			if(CheckPlayers==1)
 			{
 				i=TotalPlayers;
-				PS_In[i].PS_Add_Chips(Pot);
+				PS->PS_Add_Chips(Pot);
 			}
 
 		}
@@ -479,24 +499,28 @@ void PokerTurns::PT_Round_Result()
 	{
 		for(int i=0;i<TotalPlayers;i++)
 		{
+			PS = PSL_In->PSL_getPlayer(i);
 			Rank[i] = C_In[i].C_Poker_Hands(PlayerHandRank,2);
 			PlayerRank = Rank[i];
-			PS_In[i].PS_setRank(PlayerRank);
+			PS->PS_setRank(PlayerRank);
 		}
 		do
 		{
 			for(int j=0;j<TotalPlayers;j++)
 			{
-				Max = PS_In[j].PS_getRank();
-				if(PS_In[j].PS_getRank()>Max)
+				PS = PSL_In->PSL_getPlayer(j);
+				Max = PS->PS_getRank();
+				if(PS->PS_getRank()>Max)
 				{
-					Max = PS_In[j].PS_getRank();
+					Max = PS->PS_getRank();
 					Chosen=j;
 				}
 			}
-			if(PS_In[Chosen].PS_getInRound()==0)
+			PS = PSL_In->PSL_getPlayer(Chosen);
+			if(PS->PS_getInRound()==0)
 			{
-				PlayerHand[0] = PS_In[Chosen].PS_getCardArray();
+				PS = PSL_In->PSL_getPlayer(Chosen);
+				PlayerHand[0] = PS->PS_getCardArray();
 				PlayerHand[0]=0;
 				PlayerHand[1]=0;
 				PlayerHand[2]=0;
@@ -504,34 +528,37 @@ void PokerTurns::PT_Round_Result()
 				PlayerHand[4]=0;
 				PlayerHand[5]=0;
 				PlayerHand[6]=0;
-				PS_In[Chosen].PS_setCardArray(PlayerHand[0]);
+				PS->PS_setCardArray(PlayerHand[0]);
 			}
 
-		}while(PS_In[Chosen].PS_getInRound()==0);
-		PS_In[Chosen].PS_Add_Chips(Pot);
+		}while(PS->PS_getInRound()==0);
+		PS->PS_Add_Chips(Pot);
 	}
 	if(round==2&&PlayerIngame>1)
 	{
 		for(int i=0;i<TotalPlayers;i++)
 		{
+			PS = PSL_In->PSL_getPlayer(i);
 			Rank[i] = C_In[i].C_Poker_Hands(PlayerHandRank,5);
 			PlayerRank = Rank[i];
-			PS_In[i].PS_setRank(PlayerRank);
+			PS->PS_setRank(PlayerRank);
 		}
 		do
 		{
 			for(int j=0;j<TotalPlayers;j++)
-			{
-				Max = PS_In[j].PS_getRank();
-				if(PS_In[j].PS_getRank()>Max)
+			{	
+				PS = PSL_In->PSL_getPlayer(j);
+				Max = PS->PS_getRank();
+				if(PS->PS_getRank()>Max)
 				{
-					Max = PS_In[j].PS_getRank();
+					Max = PS->PS_getRank();
 					Chosen=j;
 				}
 			}
-			if(PS_In[Chosen].PS_getInRound()==0)
+			PS = PSL_In->PSL_getPlayer(Chosen);
+			if(PS->PS_getInRound()==0)
 			{
-				PlayerHand[0] = PS_In[Chosen].PS_getCardArray();
+				PlayerHand[0] = PS->PS_getCardArray();
 				PlayerHand[0]=0;
 				PlayerHand[1]=0;
 				PlayerHand[2]=0;
@@ -539,35 +566,38 @@ void PokerTurns::PT_Round_Result()
 				PlayerHand[4]=0;
 				PlayerHand[5]=0;
 				PlayerHand[6]=0;
-				PS_In[Chosen].PS_setCardArray(PlayerHand[0]);
+				PS->PS_setCardArray(PlayerHand[0]);
 			}
 
-		}while(PS_In[Chosen].PS_getInRound()==0);
-		PS_In[Chosen].PS_Add_Chips(Pot);
+		}while(PS->PS_getInRound()==0);
+		PS->PS_Add_Chips(Pot);
 
 	}
 	if(round==3&&PlayerIngame>1)
 	{
 		for(int i=0;i<TotalPlayers;i++)
 		{
+			PS = PSL_In->PSL_getPlayer(i);
 			Rank[i] = C_In[i].C_Poker_Hands(PlayerHandRank,6);
 			PlayerRank = Rank[i];
-			PS_In[i].PS_setRank(PlayerRank);
+			PS->PS_setRank(PlayerRank);
 		}
 		do
 		{
 			for(int j=0;j<TotalPlayers;j++)
 			{
-				Max = PS_In[j].PS_getRank();
-				if(PS_In[j].PS_getRank()>Max)
+				PS = PSL_In->PSL_getPlayer(j);
+				Max = PS->PS_getRank();
+				if(PS->PS_getRank()>Max)
 				{
-					Max = PS_In[j].PS_getRank();
+					Max = PS->PS_getRank();
 					Chosen=j;
 				}
 			}
-			if(PS_In[Chosen].PS_getInRound()==0)
+			PS = PSL_In->PSL_getPlayer(Chosen);
+			if(PS->PS_getInRound()==0)
 			{
-				PlayerHand[0] = PS_In[Chosen].PS_getCardArray();
+				PlayerHand[0] = PS->PS_getCardArray();
 				PlayerHand[0]=0;
 				PlayerHand[1]=0;
 				PlayerHand[2]=0;
@@ -575,35 +605,38 @@ void PokerTurns::PT_Round_Result()
 				PlayerHand[4]=0;
 				PlayerHand[5]=0;
 				PlayerHand[6]=0;
-				PS_In[Chosen].PS_setCardArray(PlayerHand[0]);
+				PS->PS_setCardArray(PlayerHand[0]);
 			}
 
-		}while(PS_In[Chosen].PS_getInRound()==0);
-		PS_In[Chosen].PS_Add_Chips(Pot);
+		}while(PS->PS_getInRound()==0);
+		PS->PS_Add_Chips(Pot);
 
 	}
 	if(round==4&&PlayerIngame>1)
 	{
 		for(int i=0;i<TotalPlayers;i++)
 		{
+			PS = PSL_In->PSL_getPlayer(i);
 			Rank[i] = C_In[i].C_Poker_Hands(PlayerHandRank,7);
 			PlayerRank = Rank[i];
-			PS_In[i].PS_setRank(PlayerRank);
+			PS->PS_setRank(PlayerRank);
 		}
 		do
 		{
 			for(int j=0;j<TotalPlayers;j++)
 			{
-				Max = PS_In[j].PS_getRank();
-				if(PS_In[j].PS_getRank()>Max)
+				PS = PSL_In->PSL_getPlayer(j);
+				Max = PS->PS_getRank();
+				if(PS->PS_getRank()>Max)
 				{
-					Max = PS_In[j].PS_getRank();
+					Max = PS->PS_getRank();
 					Chosen=j;
 				}
 			}
-			if(PS_In[Chosen].PS_getInRound()==0)
+			PS = PSL_In->PSL_getPlayer(Chosen);
+			if(PS->PS_getInRound()==0)
 			{
-				PlayerHand[0] = PS_In[Chosen].PS_getCardArray();
+				PlayerHand[0] = PS->PS_getCardArray();
 				PlayerHand[0]=0;
 				PlayerHand[1]=0;
 				PlayerHand[2]=0;
@@ -611,14 +644,12 @@ void PokerTurns::PT_Round_Result()
 				PlayerHand[4]=0;
 				PlayerHand[5]=0;
 				PlayerHand[6]=0;
-				PS_In[Chosen].PS_setCardArray(PlayerHand[0]);
+				PS->PS_setCardArray(PlayerHand[0]);
 			}
 
-		}while(PS_In[Chosen].PS_getInRound()==0);
-		PS_In[Chosen].PS_Add_Chips(Pot);
-
+		}while(PS->PS_getInRound()==0);
+		PS->PS_Add_Chips(Pot);
 	}
-
 }
 
 

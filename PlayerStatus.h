@@ -25,7 +25,7 @@ class PlayerStatus : public player
 
 	public:
 
-	 PlayerStatus(int,int,int,int);
+	 PlayerStatus();
 	 void PS_setCards(int,int);
 	 //void PS_setCard2(int);
 	 void PS_setChips(int);

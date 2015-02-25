@@ -2,8 +2,7 @@
 
 //player P_Obj;
 
-PlayerStatus::PlayerStatus(int In_Game_In,int Chips_In,int Card1_In,int Card2_In)
-:PS_Ingame(In_Game_In),PS_Chips(Chips_In),PS_Card1(Card1_In),PS_Card2(Card2_In)
+PlayerStatus::PlayerStatus()
 {
 
 }
@@ -49,9 +48,9 @@ void PlayerStatus::PS_setRank(int PS_Rank_In)
     PS_Rank = PS_Rank_In;
 }
 
-void PlayerStatus::PS_setIngame(int PS_Ingame)
+void PlayerStatus::PS_setIngame(int PS_Ingame_In)
 {
-	PS_Ingame = PS_Ingame;
+	PS_Ingame = PS_Ingame_In;
 }
 
 

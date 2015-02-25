@@ -39,6 +39,7 @@ class GameStatus
 		void GS_setRiver(int);
 		void GS_setNumberOfPlayers(int);
 		void GS_setInroundTotal(int);
+		void GS_setAddToSidePot(int);
 
 		int GS_getPotSize();
 		int GS_getTurnPointer();
